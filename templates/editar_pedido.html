@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}
+<h3>Editar Pedido</h3><div class="alert alert-dark">Comanda: <b>{{ pedido.numero }}</b> | Mesa: <b>{{ pedido.mesa }}</b> | Cliente: <b>{{ pedido.cliente }}</b></div>
+<div class="card"><div class="card-body"><form method="post" class="row g-3">
+<div class="col-md-4"><label>Produto</label><input class="form-control" value="{{ pedido.descricao }}" disabled></div>
+<div class="col-md-2"><label>Setor</label><input class="form-control" value="{{ pedido.setor_preparo }}" disabled></div>
+<div class="col-md-2"><label>Quantidade</label><input class="form-control" type="number" name="quantidade" value="{{ pedido.quantidade }}" min="1" required></div>
+{% if pedido.usa_ponto_carne %}<div class="col-md-3"><label>Ponto da Carne</label><select class="form-select" name="ponto_carne"><option {% if pedido.ponto_carne=="Mal passado" %}selected{% endif %}>Mal passado</option><option {% if pedido.ponto_carne=="Ao ponto" %}selected{% endif %}>Ao ponto</option><option {% if pedido.ponto_carne=="Bem passado" %}selected{% endif %}>Bem passado</option></select></div>{% endif %}
+<div class="col-md-6"><label>Observação</label><input class="form-control" name="observacao" value="{{ pedido.observacao or '' }}" placeholder="Ex: sem sal"></div>
+<div class="col-12"><button class="btn btn-success">Salvar Alterações</button> <a class="btn btn-secondary" href="{{ url_for('comanda_historico', comanda_id=pedido.comanda_id) }}">Voltar</a></div>
+</form></div></div>{% endblock %}

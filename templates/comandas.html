@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}
+<div class="d-flex justify-content-between align-items-center"><h3>Comandas Abertas</h3><a class="btn btn-primary" href="{{ url_for('nova_comanda') }}">Nova Comanda</a></div>
+<div class="alert alert-info mt-3">Clique em qualquer linha da comanda para visualizar o histórico dos pedidos.</div>
+<table class="table table-hover mt-3"><thead><tr><th>Número</th><th>Mesa</th><th>Cliente</th><th>Garçom</th><th>Abertura</th><th>Ação</th></tr></thead><tbody>
+{% for c in comandas %}
+<tr class="linha-clicavel" onclick="window.location='{{ url_for('comanda_historico', comanda_id=c.id) }}'">
+<td><b>{{ c.numero }}</b></td><td>{{ c.mesa }}</td><td>{{ c.cliente }}</td><td>{{ c.garcom }}</td><td>{{ c.data_abertura }}</td>
+<td onclick="event.stopPropagation();"><a class="btn btn-sm btn-success" href="{{ url_for('lancar_pedido', comanda_id=c.id) }}">Lançar Pedido</a> <a class="btn btn-sm btn-dark" href="{{ url_for('comanda_historico', comanda_id=c.id) }}">Histórico</a></td>
+</tr>{% endfor %}
+</tbody></table>{% endblock %}

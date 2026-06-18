@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block content %}
+<div class="d-flex justify-content-between align-items-center"><h3>Histórico da Comanda</h3><div>{% if comanda.status=="ABERTA" %}<a class="btn btn-success" href="{{ url_for('lancar_pedido', comanda_id=comanda.id) }}">+ Lançar Pedido</a>{% endif %} <a class="btn btn-secondary" href="{{ url_for('comandas') }}">Voltar</a></div></div>
+<div class="alert alert-dark mt-3"><b>{{ comanda.numero }}</b> | Mesa: <b>{{ comanda.mesa }}</b> | Cliente: <b>{{ comanda.cliente }}</b> | Garçom: <b>{{ comanda.garcom or "-" }}</b> | Status: <b>{{ comanda.status }}</b> | Total: <b>R$ {{ "%.2f"|format(total) }}</b></div>
+<table class="table table-striped table-hover"><thead><tr><th>Hora</th><th>Produto</th><th>Setor</th><th>Tipo</th><th>Qtd</th><th>Ponto</th><th>Obs</th><th>Status</th><th>Valor</th><th>Ações</th></tr></thead><tbody>
+{% for p in pedidos %}<tr><td>{{ p.data_hora[11:16] }}</td><td><b>{{ p.descricao }}</b></td><td>{{ p.setor_preparo }}</td>
+<td>
+{% if p.valor_unitario == 0 %}
+<span class="badge bg-info text-dark">Produção</span>
+{% else %}
+<span class="badge bg-success">Cobrança</span>
+{% endif %}
+</td>
+<td>{{ p.quantidade }}</td><td>{{ p.ponto_carne }}</td><td>{{ p.observacao }}</td><td>{% if p.status=="PENDENTE" %}<span class="badge bg-danger">{{ p.status }}</span>{% elif p.status=="EM PREPARO" %}<span class="badge bg-warning text-dark">{{ p.status }}</span>{% elif p.status=="PRONTO" %}<span class="badge bg-success">{{ p.status }}</span>{% else %}<span class="badge bg-secondary">{{ p.status }}</span>{% endif %}</td><td>{% if p.valor_unitario == 0 %}<span class="text-muted">Item do combo</span>{% else %}R$ {{ "%.2f"|format(p.quantidade*p.valor_unitario) }}{% endif %}</td><td>{% if p.status in ["PENDENTE","EM PREPARO"] and comanda.status=="ABERTA" and p.valor_unitario > 0 %}<a class="btn btn-sm btn-warning" href="{{ url_for('editar_pedido', pedido_id=p.id) }}">Editar</a> <a class="btn btn-sm btn-danger" onclick="return confirm('Deseja excluir este pedido?')" href="{{ url_for('excluir_pedido', pedido_id=p.id) }}">Excluir</a>{% else %}<span class="text-muted">Bloqueado</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% if not pedidos %}<div class="alert alert-info">Nenhum pedido lançado nesta comanda.</div>{% endif %}
+{% endblock %}

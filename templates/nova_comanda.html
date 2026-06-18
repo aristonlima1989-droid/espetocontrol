@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<h3>Nova Comanda</h3><div class="card"><div class="card-body"><form method="post" class="row g-3">
+<div class="col-md-3"><label>Mesa</label><input class="form-control" name="mesa" required placeholder="Ex: 05"></div>
+<div class="col-md-6"><label>Cliente</label><input class="form-control" name="cliente" placeholder="Opcional"></div>
+<div class="col-md-3"><label>Qtd. Pessoas</label><input class="form-control" type="number" name="qtd_pessoas" value="1" min="1"></div>
+<div class="col-12"><button class="btn btn-primary">Abrir Comanda</button></div>
+</form></div></div>{% endblock %}

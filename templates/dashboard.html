@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<h3>Dashboard</h3><div class="row">
+<div class="col-md-4 mb-3"><div class="card card-indicador"><div class="card-body"><h5>Comandas Abertas</h5><h2>{{ comandas_abertas }}</h2></div></div></div>
+<div class="col-md-4 mb-3"><div class="card card-indicador"><div class="card-body"><h5>Pedidos Pendentes</h5><h2>{{ pedidos_pendentes }}</h2></div></div></div>
+<div class="col-md-4 mb-3"><div class="card card-indicador"><div class="card-body"><h5>Vendas Hoje</h5><h2>R$ {{ "%.2f"|format(vendas_dia) }}</h2></div></div></div>
+</div><div class="d-grid gap-2 d-md-flex"><a class="btn btn-primary btn-lg" href="{{ url_for('nova_comanda') }}">Abrir Comanda</a><a class="btn btn-danger btn-lg" href="{{ url_for('churrasqueira') }}">Churrasqueira</a><a class="btn btn-warning btn-lg" href="{{ url_for('cozinha') }}">Cozinha</a><a class="btn btn-success btn-lg" href="{{ url_for('caixa') }}">Caixa</a></div>
+{% endblock %}
