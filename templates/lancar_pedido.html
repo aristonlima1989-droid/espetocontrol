@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block content %}
+<div class="d-flex justify-content-between align-items-center"><h3>Lançar Pedido</h3><a class="btn btn-dark" href="{{ url_for('comanda_historico', comanda_id=comanda.id) }}">Ver Histórico</a></div>
+<div class="alert alert-dark"><b>{{ comanda.numero }}</b> | Mesa: <b>{{ comanda.mesa }}</b> | Cliente: <b>{{ comanda.cliente }}</b> | Total: <b>R$ {{ "%.2f"|format(total) }}</b></div>
+<div class="alert alert-info">Para lançar vários produtos na mesma mesa, selecione o produto, envie, e repita. Quando lançar um COMBO/Espeto Completo, o sistema gera automaticamente os itens para churrasqueira e cozinha.</div>
+<div class="card mb-3"><div class="card-body"><form method="post" class="row g-2">
+<div class="col-md-4"><label>Produto</label><select class="form-select" name="produto_id" id="produto_id" required>{% for p in produtos %}<option value="{{ p.id }}" data-ponto="{{ p.usa_ponto_carne }}">{{ p.descricao }} - {{ p.tipo_produto }} - {{ p.setor_preparo }} - R$ {{ "%.2f"|format(p.valor) }}</option>{% endfor %}</select></div>
+<div class="col-md-2"><label>Quantidade</label><input class="form-control" type="number" name="quantidade" value="1" min="1"></div>
+<div class="col-md-3" id="area_ponto"><label>Ponto da Carne</label><select class="form-select" name="ponto_carne"><option>Mal passado</option><option>Ao ponto</option><option>Bem passado</option></select></div>
+<div class="col-md-3"><label>Observação</label><input class="form-control" name="observacao" placeholder="Ex: sem sal"></div>
+<div class="col-12"><button class="btn btn-success btn-lg">Enviar para Setor de Preparo</button></div>
+</form></div></div>
+<h5>Itens da Comanda</h5><table class="table table-striped"><thead><tr><th>Hora</th><th>Produto</th><th>Setor</th><th>Qtd</th><th>Ponto</th><th>Obs</th><th>Status</th><th>Valor</th><th>Ações</th></tr></thead><tbody>
+{% for p in pedidos %}<tr><td>{{ p.data_hora[11:16] }}</td><td>{{ p.descricao }}</td><td><b>{{ p.setor_preparo }}</b></td><td>{{ p.quantidade }}</td><td>{{ p.ponto_carne }}</td><td>{{ p.observacao }}</td><td>{{ p.status }}</td><td>R$ {{ "%.2f"|format(p.quantidade*p.valor_unitario) }}</td><td>{% if p.status in ["PENDENTE","EM PREPARO"] %}<a class="btn btn-sm btn-warning" href="{{ url_for('editar_pedido', pedido_id=p.id) }}">Editar</a> <a class="btn btn-sm btn-danger" onclick="return confirm('Deseja excluir este pedido?')" href="{{ url_for('excluir_pedido', pedido_id=p.id) }}">Excluir</a>{% else %}<span class="text-muted">Bloqueado</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% endblock %}
+{% block scripts %}<script>function atualizarPonto(){const s=document.getElementById("produto_id");const o=s.options[s.selectedIndex];document.getElementById("area_ponto").style.display=o.getAttribute("data-ponto")==="1"?"block":"none"}document.getElementById("produto_id").addEventListener("change",atualizarPonto);atualizarPonto();</script>{% endblock %}

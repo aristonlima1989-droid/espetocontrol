@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h3>Painel - {{ titulo }}</h3>
+    <span class="badge bg-dark fs-6">Ordem de chegada</span>
+</div>
+
+<div class="mb-3">
+    <a class="btn btn-outline-dark {% if setor=='CHURRASQUEIRA' %}active{% endif %}" href="{{ url_for('cozinha', setor='CHURRASQUEIRA') }}">Churrasqueira</a>
+    <a class="btn btn-outline-dark {% if setor=='COZINHA' %}active{% endif %}" href="{{ url_for('cozinha', setor='COZINHA') }}">Cozinha</a>
+    <a class="btn btn-outline-dark {% if setor=='BAR' %}active{% endif %}" href="{{ url_for('cozinha', setor='BAR') }}">Bar/Bebidas</a>
+</div>
+
+<div class="alert alert-info">
+    Este painel agrupa os pedidos por comanda/mesa. Cada mesa aparece uma única vez na fila do setor.
+</div>
+
+<div id="pedidos" class="row"></div>
+
+<audio id="somNovoPedido">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let ultimoTotal = 0;
+const setor = "{{ setor }}";
+const titulo = "{{ titulo }}";
+
+function minutos(dataHora) {
+    return Math.max(0, Math.floor((new Date() - new Date(dataHora.replace(" ", "T"))) / 60000));
+}
+
+function classeTempo(min) {
+    if (min <= 10) return "bg-success";
+    if (min <= 20) return "bg-warning text-dark";
+    return "bg-danger";
+}
+
+function imprimirGrupo(g, posicao) {
+    const itens = g.itens.map(i => {
+        return `<div class="grande">${i.quantidade}x ${i.produto.toUpperCase()}</div>
+                ${i.ponto_carne ? `<div class="ponto">PONTO: ${i.ponto_carne.toUpperCase()}</div>` : ""}
+                ${i.observacao ? `<div>Obs: ${i.observacao}</div>` : ""}
+                <br>`;
+    }).join("");
+
+    const html = `
+    <html>
+    <head>
+        <title>Pedido ${g.comanda}</title>
+        <style>
+            body { font-family: Arial; font-size: 18px; }
+            h2 { margin: 0 0 8px 0; }
+            .grande { font-size: 26px; font-weight: bold; }
+            .ponto { font-size: 22px; font-weight: bold; }
+            hr { border: 1px dashed #000; }
+        </style>
+    </head>
+    <body>
+        <h2>${titulo.toUpperCase()}</h2>
+        <div>${posicao}º da fila</div>
+        <div>Mesa: <b>${g.mesa}</b></div>
+        <div>Comanda: <b>${g.comanda}</b></div>
+        <div>Cliente: <b>${g.cliente}</b></div>
+        <div>Horário: <b>${g.primeiro_horario.substring(11,16)}</b></div>
+        <hr>
+        ${itens}
+        <hr>
+        <div>Conferido: __________________</div>
+    </body>
+    </html>`;
+
+    const win = window.open("", "PRINT", "width=420,height=700");
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+}
+
+function cardGrupo(g, index) {
+    const posicao = index + 1;
+    const min = minutos(g.primeiro_horario);
+    const tempoClasse = classeTempo(min);
+    const badge = g.status_geral === "PENDENTE" ? "bg-danger" : "bg-warning text-dark";
+    const border = g.status_geral === "PENDENTE" ? "border-danger" : "border-warning";
+    const atrasado = min > 20 ? `<div class="badge bg-danger fs-5 mt-2">ATRASADO</div>` : "";
+
+    window["grupo_" + g.chave] = g;
+
+    const itensHtml = g.itens.map(i => {
+        return `
+            <div class="item-producao mb-3">
+                <h3>${i.quantidade}x ${i.produto.toUpperCase()}</h3>
+                ${i.ponto_carne ? `<p class="ponto-carne">🔥 ${i.ponto_carne.toUpperCase()}</p>` : ""}
+                ${i.observacao ? `<p><b>Obs:</b> ${i.observacao}</p>` : ""}
+                <span class="badge ${i.status === "PENDENTE" ? "bg-danger" : "bg-warning text-dark"}">${i.status}</span>
+            </div>
+        `;
+    }).join("<hr>");
+
+    return `
+    <div class="col-md-4 mb-3">
+        <div class="card ${border} shadow pedido-card">
+            <div class="card-header d-flex justify-content-between">
+                <b>${posicao}º DA FILA</b>
+                <span class="badge ${badge}">${g.status_geral}</span>
+            </div>
+            <div class="card-body">
+                <div class="badge ${tempoClasse} fs-6 mb-2">⏱ ${min} min</div>
+                ${atrasado}
+
+                <h2>Mesa ${g.mesa}</h2>
+                <p><b>Comanda:</b> ${g.comanda}</p>
+                <p><b>Cliente:</b> ${g.cliente}</p>
+                <p><b>Horário:</b> ${g.primeiro_horario.substring(11,16)}</p>
+
+                <hr>
+                ${itensHtml}
+
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-dark" onclick='imprimirGrupo(window["grupo_${g.chave}"], ${posicao})'>Imprimir Pedido</button>
+                    <a class="btn btn-warning" href="/pedido_status_comanda_setor/${g.comanda_id}/${setor}/preparo">Tudo em preparo</a>
+                    <a class="btn btn-success" href="/pedido_status_comanda_setor/${g.comanda_id}/${setor}/pronto">Tudo pronto</a>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+async function carregar() {
+    const resp = await fetch(`/api/pedidos_setor_agrupado?setor=${setor}`);
+    const grupos = await resp.json();
+
+    if (grupos.length > ultimoTotal) {
+        document.getElementById("somNovoPedido").play().catch(() => {});
+    }
+
+    ultimoTotal = grupos.length;
+
+    const div = document.getElementById("pedidos");
+
+    if (!grupos.length) {
+        div.innerHTML = `<div class="col-12"><div class="alert alert-success">Nenhum pedido pendente para este setor.</div></div>`;
+        return;
+    }
+
+    div.innerHTML = grupos.map(cardGrupo).join("");
+}
+
+carregar();
+setInterval(carregar, 5000);
+</script>
+{% endblock %}

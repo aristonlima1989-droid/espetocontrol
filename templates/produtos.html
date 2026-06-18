@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+<h3>Cadastro de Produtos</h3>
+<div>{% if mostrar_inativos %}<a class="btn btn-outline-secondary" href="{{ url_for('produtos') }}">Mostrar somente ativos</a>{% else %}<a class="btn btn-outline-secondary" href="{{ url_for('produtos', inativos=1) }}">Mostrar inativos</a>{% endif %}</div>
+</div>
+<div class="alert alert-info"><b>AVULSO</b> = espeto sozinho | <b>SIMPLES</b> = espeto + mandioca | <b>COMPLETO</b> = espeto + arroz/farofa/vinagrete | <b>BEBIDA</b> = bar</div>
+<div class="card mb-3"><div class="card-body">
+<form method="post" class="row g-2">
+<div class="col-md-3"><label>Descrição</label><input class="form-control" name="descricao" required></div>
+<div class="col-md-2"><label>Categoria</label><select class="form-select" name="categoria"><option>Espeto</option><option>Bebida</option><option>Acompanhamento</option><option>Combo</option><option>Sobremesa</option><option>Outro</option></select></div>
+<div class="col-md-2"><label>Valor</label><input class="form-control" name="valor" required placeholder="0,00"></div>
+<div class="col-md-2"><label>Setor</label><select class="form-select" name="setor_preparo"><option value="CHURRASQUEIRA">Churrasqueira</option><option value="COZINHA">Cozinha</option><option value="BAR">Bar/Bebidas</option></select></div>
+<div class="col-md-2"><label>Tipo</label><select class="form-select" name="tipo_produto"><option value="AVULSO">Avulso</option><option value="SIMPLES">Simples</option><option value="COMPLETO">Completo</option><option value="BEBIDA">Bebida</option></select></div>
+<div class="col-md-1 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="usa_ponto_carne"><label class="form-check-label">Ponto</label></div></div>
+<div class="col-12"><button class="btn btn-primary">Salvar Produto</button></div>
+</form></div></div>
+<table class="table table-striped table-hover">
+<thead><tr><th>Produto</th><th>Categoria</th><th>Valor</th><th>Ponto</th><th>Setor</th><th>Tipo</th><th>Status</th><th>Ações</th></tr></thead>
+<tbody>
+{% for p in produtos %}
+<tr class="{% if not p.ativo %}table-secondary{% endif %}">
+<td>{{ p.descricao }}</td><td>{{ p.categoria }}</td><td>R$ {{ "%.2f"|format(p.valor) }}</td><td>{{ "Sim" if p.usa_ponto_carne else "Não" }}</td><td><b>{{ p.setor_preparo }}</b></td>
+<td><span class="badge bg-secondary">{{ p.tipo_produto }}</span></td>
+<td>{% if p.ativo %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}</td>
+<td>
+<a class="btn btn-sm btn-warning" href="{{ url_for('editar_produto', produto_id=p.id) }}">Editar</a>
+{% if p.tipo_produto in ["SIMPLES","COMPLETO"] %}<a class="btn btn-sm btn-info" href="{{ url_for('combo_config', combo_id=p.id) }}">Itens</a>{% endif %}
+{% if p.ativo %}<a class="btn btn-sm btn-danger" onclick="return confirm('Deseja inativar este produto?')" href="{{ url_for('inativar_produto', produto_id=p.id) }}">Inativar</a>{% else %}<a class="btn btn-sm btn-success" href="{{ url_for('reativar_produto', produto_id=p.id) }}">Reativar</a>{% endif %}
+</td></tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

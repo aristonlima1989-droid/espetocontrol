@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Resetar Senha</h3>
+<div class="alert alert-dark">Usuário: <b>{{ usuario.nome }}</b> | Login: <b>{{ usuario.login }}</b></div>
+<div class="card"><div class="card-body">
+<form method="post" class="row g-3">
+<div class="col-md-4"><label>Nova senha</label><input class="form-control" type="password" name="senha" value="123456" required><small class="text-muted">Senha sugerida: 123456</small></div>
+<div class="col-12"><button class="btn btn-success">Confirmar Reset</button> <a class="btn btn-secondary" href="{{ url_for('usuarios') }}">Voltar</a></div>
+</form></div></div>
+{% endblock %}
